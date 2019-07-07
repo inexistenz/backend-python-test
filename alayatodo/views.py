@@ -89,6 +89,19 @@ def todos_POST():
 def todo_delete(id):
     if not session.get('logged_in'):
         return redirect('/login')
+
+    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
+    todo = cur.fetchone()
+
     g.db.execute("DELETE FROM todos WHERE id ='%s'" % id)
     g.db.commit()
+
+    confirm_message = \
+        "Todo item '{description}' deleted!".format(
+        description=todo['description'])
+
+    flash(confirm_message)
+
+    return redirect('/todo')
+
     return redirect('/todo')
