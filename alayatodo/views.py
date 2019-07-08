@@ -75,7 +75,9 @@ def todos():
 def todos_POST():
     if not session.get('logged_in'):
         return redirect('/login')
+
     description = request.form.get('description', '')
+
     if description:
         g.db.execute(
             "INSERT INTO todos (user_id, description) VALUES ('%s', '%s')"
@@ -84,6 +86,14 @@ def todos_POST():
         g.db.commit()
     else:
         flash("You must provide a description.", "error")
+
+    confirm_message = \
+        "Todo item '{description}' added for user {user}!".format(
+        description=description,
+        user=session['user']['username'])
+
+    flash(confirm_message)
+
     return redirect(url_for('todos'))
 
 
@@ -101,6 +111,18 @@ def todo_complete(id):
 def todo_delete(id):
     if not session.get('logged_in'):
         return redirect('/login')
+
+    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
+    todo = cur.fetchone()
+
     g.db.execute("DELETE FROM todos WHERE id ='%s'" % id)
     g.db.commit()
+
+    confirm_message = \
+        "Todo item '{description}' deleted!".format(
+        description=todo['description'])
+
+    flash(confirm_message)
+
     return redirect('/todo')
+
