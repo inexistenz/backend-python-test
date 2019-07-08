@@ -1,3 +1,5 @@
+import json
+
 from alayatodo import app
 from flask import (
     g,
@@ -71,6 +73,16 @@ def todos_POST():
     )
     g.db.commit()
     return redirect('/todo')
+
+
+@app.route('/todo/<id>/complete', methods=['POST'])
+def todo_complete(id):
+    completed = int(request.form.get('completed'))
+    g.db.execute(
+        "UPDATE todos SET completed = {completed} WHERE id = {id_}".format(id_=id, completed=completed)
+    )
+    g.db.commit()
+    return json.dumps({'id': id, 'completed': completed})
 
 
 @app.route('/todo/<id>', methods=['POST'])
