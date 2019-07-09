@@ -11,6 +11,8 @@ from flask import (
     flash
     )
 
+from . import orm
+
 
 @app.route('/')
 def home():
@@ -29,9 +31,7 @@ def login_POST():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    sql = "SELECT * FROM users WHERE username = '%s' AND password = '%s'";
-    cur = g.db.execute(sql % (username, password))
-    user = cur.fetchone()
+    user = orm.get_user(username, password)
     if user:
         session['user'] = dict(user)
         session['logged_in'] = True
@@ -49,24 +49,24 @@ def logout():
 
 @app.route('/todo/<id>', methods=['GET'])
 def todo(id):
-    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
-    todo = cur.fetchone()
+    todo = orm.get_todo(id)
     return render_template('todo.html', todo=todo)
+
 
 @app.route('/todo/<id>/json', methods=['GET'])
 def todo_json(id):
-    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
-    todo = cur.fetchone()
-    todo_dict = dict([(k, todo[k]) for k in todo.keys()])
-    return json.dumps(todo_dict)
+    todo = orm.get_todo(id)
+    return todo.to_json()
+
 
 @app.route('/todo', methods=['GET'])
 @app.route('/todo/', methods=['GET'])
 def todos():
     if not session.get('logged_in'):
         return redirect('/login')
-    cur = g.db.execute("SELECT * FROM todos")
-    todos = cur.fetchall()
+
+    todos = orm.get_todos()
+
     return render_template('todos.html', todos=todos)
 
 
@@ -77,19 +77,16 @@ def todos_paginated(page):
 
     page_size = 5
 
-    cur = g.db.execute("SELECT COUNT(*) FROM todos")
-    count = cur.fetchone()[0]
+    count = orm.get_todo_count()
 
-    max_page = count / page_size + 1
+    page_count = count / page_size 
+    remainder = count % page_size != 0
+    max_page = page_count + int(remainder) 
+
     page = page if page < max_page else max_page
     offset = page_size * (page - 1)
 
-    command = "SELECT * FROM todos" \
-              " ORDER BY id" \
-              " LIMIT {page_size}" \
-              " OFFSET {offset}".format(page_size=page_size, offset=offset)
-    cur = g.db.execute(command)
-    todos = cur.fetchall()
+    todos = orm.get_todos(offset=offset, limit=page_size)
 
     return render_template('todos.html', todos=todos, page=page, max_page=max_page)
 
@@ -103,11 +100,8 @@ def todos_POST():
     description = request.form.get('description', '')
 
     if description:
-        g.db.execute(
-            "INSERT INTO todos (user_id, description) VALUES ('%s', '%s')"
-            % (session['user']['id'], request.form.get('description', ''))
-        )
-        g.db.commit()
+        orm.add_todo(session['user']['id'], description)
+
     else:
         flash("You must provide a description.", "error")
 
@@ -124,10 +118,8 @@ def todos_POST():
 @app.route('/todo/<id>/complete', methods=['POST'])
 def todo_complete(id):
     completed = int(request.form.get('completed'))
-    g.db.execute(
-        "UPDATE todos SET completed = {completed} WHERE id = {id_}".format(id_=id, completed=completed)
-    )
-    g.db.commit()
+    todo = orm.get_todo(id)
+    todo.completed = completed
     return json.dumps({'id': id, 'completed': completed})
 
 
@@ -136,17 +128,9 @@ def todo_delete(id):
     if not session.get('logged_in'):
         return redirect('/login')
 
-    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
-    todo = cur.fetchone()
+    orm.delete_todo(id)
 
-    g.db.execute("DELETE FROM todos WHERE id ='%s'" % id)
-    g.db.commit()
-
-    confirm_message = \
-        "Todo item '{description}' deleted!".format(
-        description=todo['description'])
-
-    flash(confirm_message)
+    flash("Todo item deleted!")
 
     return redirect('/todo')
 

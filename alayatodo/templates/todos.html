@@ -27,7 +27,7 @@
         {% endfor %}
         <tr>
             <form method="post" action="{{ url_for('todos_POST') }}">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
@@ -44,6 +44,7 @@
                 &nbsp;
                 {% endif %}
             </td>
+            <td>&nbsp;</td>
             <td align="right" colspan="2">
                 {% if page != max_page %}
                 <a class="btn btn-sm btn-primary" href="{{ url_for('todos_paginated', page=page+1) }}">Next</a>
