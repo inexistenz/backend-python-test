@@ -70,6 +70,30 @@ def todos():
     return render_template('todos.html', todos=todos)
 
 
+@app.route('/todo/page/<int:page>', methods=['GET'])
+def todos_paginated(page):
+    if not session.get('logged_in'):
+        return redirect('/login')
+
+    page_size = 5
+
+    cur = g.db.execute("SELECT COUNT(*) FROM todos")
+    count = cur.fetchone()[0]
+
+    max_page = count / page_size + 1
+    page = page if page < max_page else max_page
+    offset = page_size * (page - 1)
+
+    command = "SELECT * FROM todos" \
+              " ORDER BY id" \
+              " LIMIT {page_size}" \
+              " OFFSET {offset}".format(page_size=page_size, offset=offset)
+    cur = g.db.execute(command)
+    todos = cur.fetchall()
+
+    return render_template('todos.html', todos=todos, page=page, max_page=max_page)
+
+
 @app.route('/todo', methods=['POST'])
 @app.route('/todo/', methods=['POST'])
 def todos_POST():

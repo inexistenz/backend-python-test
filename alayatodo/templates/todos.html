@@ -35,6 +35,24 @@
                 </td>
             </form>
         </tr>
+        {% if page is defined %}
+        <tr>
+            <td align="left" colspan="2">
+                {% if page != 1 %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('todos_paginated', page=page-1) }}">Prev</a>
+                {% else %}
+                &nbsp;
+                {% endif %}
+            </td>
+            <td align="right" colspan="2">
+                {% if page != max_page %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('todos_paginated', page=page+1) }}">Next</a>
+                {% else %}
+                &nbsp;
+                {% endif %}
+            </td>
+        </tr>
+        {% endif %}
     </table>
 </div>
 {% endblock %}
