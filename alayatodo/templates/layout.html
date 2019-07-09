@@ -20,6 +20,13 @@
           <ul class="nav navbar-nav">
             <li><a href="/todo">Todo list</a></li>
           </ul>
+          <ul class="nav navbar-nav">
+            {% if page is defined %}
+            <li><a href="#">Todo List (Paginated)</a></li>
+            {% else %}
+            <li><a href="{{ url_for('todos_paginated', page=1) }}">Todo List (Paginated)</a></li>
+            {% endif %}
+          </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if session.user %}
               <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-user"></span>
@@ -49,5 +56,14 @@
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+      $('input.todo[type="checkbox"]').change(function(){
+        if($(this).is(":checked")) {
+          $.post(this.value, {"completed": 1});
+        } else {
+          $.post(this.value, {"completed": 0});
+        }
+      });
+    </script>
   </body>
 </html>
