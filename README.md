@@ -1,3 +1,16 @@
+Additional Work
+===============
+
+I was able to complete most of each task however, I wasn't quite sure what was
+needed for the migration other than adding a line to the database creation
+script. 
+
+Something else I was not sure how to implement was password protection.
+Currently the passwords are stored as plain text but they should actually be
+stored as hash values. The difficulty for me comes from updating the already
+stored passwords to hashes and figuring out when to hash the passwords.
+
+
 Alayacare Python skill test
 ===========================
 
@@ -22,7 +35,7 @@ Credentials:
 ![Todos](/web/img/todos.png?raw=true "Todos")
 
 ### Requirements
-* python 5.7
+* python 2.7
 * virtualenv
 * sqlite3
 * A github account
@@ -31,9 +44,10 @@ Credentials:
 **/!\ You need to fork this repository. See [How to submit your work?](#how-to-submit-your-work)**
 ```sh
 virtualenv .
-bin/pip install -r requirements.txt
-bin/python main.py initdb
-bin/python main.py
+source bin/activate
+pip install -r requirements.txt
+python main.py initdb
+python main.py
 ```
 
 ### Instructions
